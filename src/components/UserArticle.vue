@@ -55,19 +55,6 @@ export default{
     }
 }
 </script>
-<style>
-.post-comments,
-.post-comment-form {
-    margin-top: 30px;
-}
+<style scoped src="../css/blog.css">
 
-.post-comment-item {
-    border: 1px dotted #DDDDDD;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-
-.post-comment-email {
-    border-bottom: 1px dotted #DDDDDD;
-}
 </style>

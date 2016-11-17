@@ -12,10 +12,12 @@
   "dependencies": {
     "express": "^4.14.0",
     "lorem-ipsum": "^1.0.3",
+    "moment": "^2.16.0",
     "mongodb": "^2.2.11",
     "mongoose": "^4.6.6",
     "serve-favicon": "^2.3.0",
     "slug": "^0.9.1",
+    "truncate": "^2.0.0",
     "vue": "^2.0.1",
     "vue-resource": "^1.0.3",
     "vue-router": "^2.0.1",

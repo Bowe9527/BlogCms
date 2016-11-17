@@ -1,43 +1,73 @@
 <template>
     <div>
-        <div class="blog-post" v-for="(article, index) in articles">
-            <h2 class="blog-post-title"><router-link :to="{path:'/userArticle', query:{id:article._id}}">{{article.title}}</router-link></h2>
-            <p class="blog-post-meta">{{article.created}} by <a href="#">{{article.author}}</a></p>
-            <div>{{article.content}}</div>
+        <div class="post" v-for="(article, index) in articles">
+            <h3 class="post-title">
+                <router-link :to="{path:'/userArticle', query:{id:article._id}}">{{article.title}}</router-link>
+            </h3>
+            <div class="post-abstract">{{article.content}}</div>
+            <div class="post-meta">
+                <span class="post-created">时间:&nbsp; {{article.created}}</span>
+                <span class="post-author">作者:&nbsp;  {{article.author.name}}</span>
+                <span class="post-category">分类:&nbsp;  {{article.category.name}}</span>
+                <span class="post-comment">评论:&nbsp;  {{article.comments.length}}</span>
+                <span class="post-favorite">被赞:&nbsp; {{article.meta.favourates}}</span>
+                <router-link :to="{path:'/userArticle', query:{id:article._id}}">查看全文</router-link>
+            </div>
         </div>
 
         <nav>
             <ul class="pagination">
-                <li><a href="#" class="active">1</a></li>
-                <li><a href="#">2</a></li>
+                <li v-for="n in pages" :class="{'active':n==curPage}">
+                    <a href="javascript:;" @click="getArticleList(n)">{{n}}</a>
+                </li>
             </ul>
         </nav>
     </div>
 </template>
 <script>
+import moment from 'moment'
+import truncate from 'truncate'
+
 export default{
     data(){
         return{
             articles:[],
+            pages:[],
+            curPage:1,
+            pageCount:Number
         }
     },
     methods:{
         //获取所有文章
-        getArticleList(){
-            this.$http.get('/article').then(function(res){
-                this.articles=eval('('+ res.body +')');
+        getArticleList(n){
+            this.$http.get('/article?page='+ n).then(function(res){
+                this.pages=[];
+
+                this.articles = res.body.result;
+                this.pageCount = res.body.pageCount;
+                this.curPage = res.body.curPage;
+
+                //the time&conent has formated
+                for(let i=0; i<this.articles.length; i++){
+                    this.articles[i].created=moment(this.articles[i].created).format('YYYY-MM-DD');
+                    this.articles[i].content=truncate(this.articles[i].content, 140);
+                }
+
+                for(var i=0; i<this.pageCount; i++){
+                    this.pages.push(i+1);
+                }
             },function(res){
                 alert('获取文章列表失败： '+ res.status);
             });
-        },
-
+        }
     },
-    components:{
 
-    },
     created(){
-        this.getArticleList();
+        this.getArticleList(1);
     }
 }
 </script>
 
+<style scoped src="../css/blog.css">
+
+</style>

@@ -11,13 +11,13 @@ const Schema = mongoose.Schema;
 const ArticleSchema = new Schema({
     title:      {type:String, require:true},
     content:    {type:String, require:true},
-    author:     {type:String, require:true},
-    category:   {type:String, require:true},
+    author:     {type:Schema.Types.ObjectId, ref:'User'},
+    category:   {type:Schema.Types.ObjectId, ref:'Category'},
     created:    {type:Date},
     slug:       {type:String, required: true },
     published:  {type:Boolean, default: false },
     meta:       {type:Schema.Types.Mixed },
-    comments:   [Schema.Types.Mixed ],
+    comments:   [Schema.Types.Mixed ]
 },{versionKey: false});
 
 const UserSchema = new Schema({
@@ -28,7 +28,7 @@ const UserSchema = new Schema({
 });
 
 const CategorySchema = new Schema({
-    title:      {type:String, require:true},
+    name:      {type:String, require:true},
     slug:       {type:String, require:true},
     created:    {type:Date}
 });

@@ -3,18 +3,43 @@ const router = express.Router();
 const db = require('./db');
 
 /**
- * API实现
+ * API implacement
  * 接口符合RESTful风格
  */
 
 let n=0;
-//查全部文章
-router.get('/article', function(req, res){
+/**
+ * 查全部文章
+ * sort data, poulate author and category
+ * slice the pages
+ * return data to the front
+ * curPage-current page; pageSize-count pre page; pageCount-total pages
+ */
+router.get('/article', function(req, res, next){
+    console.log('cur page: '+req.query.page);
     console.log('get article list '+ n++);
-    db.Article.find({}, function(err, result){
-        if ( err ) throw err;
-        res.status(200).send(JSON.stringify(result)).end();
-    });
+    db.Article.find({published:true})
+        .sort('created')
+        .populate('author')
+        .populate('category')
+        .exec(function(err, result){
+            if ( err ) throw next(err);
+
+            let curPage=Math.abs(parseInt(req.query.page||1, 10));
+            let pageSize=10;
+            let totalCount=result.length;
+            let pageCount=Math.ceil(totalCount/pageSize);
+
+            if(curPage>pageCount) curPage=pageCount;
+
+            let back={
+                result: result.slice((curPage-1)*pageSize, curPage*pageSize),
+                pageCount:pageCount,
+                curPage:curPage,
+                pretty:true
+            };
+            res.status(200).send(back).end();
+        });
 });
 
 //查一个文章
