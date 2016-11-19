@@ -1,13 +1,13 @@
 <template>
     <div>
         <ul class="nav nav-sidebar">
-            <li class="active"><router-link to="/adminArticleList">文章列表 <span class="sr-only">(current)</span></router-link></li>
-            <li><router-link to="/adminAddArticle">添加文章</router-link></li>
-            <li><router-link to="/adminCategroy">分类列表</router-link></li>
-            <li><router-link to="/adminAddCategroy">分类列表</router-link></li>
+            <router-link to="/adminArticleList" tag="li"><a href="javascript:;"><i class="fa fa-files-o"></i>&nbsp;文章列表</a></router-link>
+            <router-link to="/adminAddArticle" tag="li"><a href="javascript:;"><i class="fa fa-file-o"></i>&nbsp;添加文章</a></router-link>
+            <router-link to="/adminCategroy" tag="li"><a href="javascript:;"><i class="fa fa-th-list"></i>&nbsp;分类列表</a></router-link>
+            <router-link to="/adminAddCategroy" tag="li"><a href="javascript:;"><i class="fa fa-plus"></i>&nbsp;分类列表</a></router-link>
         </ul>
         <ul class="nav nav-sidebar">
-            <li><a href="">修改密码</a></li>
+            <router-link to="/settingPwd" tag="li"><a href="javascript:;"><i class="fa fa-lock"></i>&nbsp;修改密码</a></router-link>
         </ul>
     </div>
 </template>
@@ -17,8 +17,11 @@
     export default{
         data(){
             return{
-                msg:'hello vue'
+
             }
+        },
+        methods:{
+
         },
         components:{
 

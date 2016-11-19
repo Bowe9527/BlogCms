@@ -15,7 +15,9 @@
     </div>
     <div class="container">
       <div class="row">
+
         <div class="col-sm-8 blog-main">
+
           <router-view></router-view>
         </div><!-- /.blog-main -->
 
@@ -30,7 +32,9 @@
 <script>
 import userFooter from './userFooter.vue'
 import userSider from './userSider.vue'
+//console.log(messages());
 export default {
+
   data () {
     return {
 

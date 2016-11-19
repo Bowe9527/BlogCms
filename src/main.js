@@ -7,7 +7,9 @@ import login from './components/Login.vue'
 import reg from './components/Reg.vue'
 import user from './components/User.vue'
 import userArticleList from './components/UserArticleList.vue'
+import userCategoryArticleList from './components/UserCategoryArticleList.vue'
 import userAbout from './components/UserAbout.vue'
+import userFavorite from './components/userFavorite.vue'
 import userArticle from './components/UserArticle.vue'
 import admin from './components/Admin.vue'
 import adminArticleList from './components/AdminArticleList.vue'
@@ -21,22 +23,24 @@ Vue.use(VueResource);
 //routes config
 const routes=[
   {path:'/', redirect:'/userArticleList'},
-  {path:'/login', component: login},
-  {path:'/reg', component: reg},
+  {path:'/login', component: login, name:'login'},
+  {path:'/reg', component: reg, name:'reg'},
   {path: '/user', component: user,
     children:[
-      {path:'/userArticleList', component:userArticleList},
-      {path:'/userArticle', component:userArticle},
-      {path:'/userAbout', component:userAbout}
+      {path:'/userArticleList', component:userArticleList, name:'userArticleList'},
+      {path:'/userCategoryArticleList', component:userCategoryArticleList, name:'userCategoryArticleList'},
+      {path:'/userArticle', component:userArticle, name:'userArticle'},
+      //{path:'/userFavorite', component:userFavorite, name:'userFavorite'},
+      {path:'/userAbout', component:userAbout, name:'userAbout'}
 
     ]
   },
   {path: '/admin', component:admin,
     children:[
-      {path:'/adminArticleList', component:adminArticleList},
-      {path:'/adminAddArticle', component:adminAddArticle},
-      {path:'/adminCategroy', component:adminCategroy},
-      {path:'/adminAddCategroy', component:adminAddCategroy}
+      {path:'/adminArticleList', component:adminArticleList, name:'adminArticleList'},
+      {path:'/adminAddArticle', component:adminAddArticle, name:'adminAddArticle'},
+      {path:'/adminCategroy', component:adminCategroy, name:'adminCategroy'},
+      {path:'/adminAddCategroy', component:adminAddCategroy, name:'adminAddCategroy'}
     ]
   }
 ];

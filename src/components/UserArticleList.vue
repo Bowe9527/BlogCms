@@ -1,8 +1,9 @@
 <template>
     <div>
+        <h2 class="page-header">全部博文</h2>
         <div class="post" v-for="(article, index) in articles">
             <h3 class="post-title">
-                <router-link :to="{path:'/userArticle', query:{id:article._id}}">{{article.title}}</router-link>
+                <router-link :to="{name:'userArticle', query:{id:article.slug}}">{{article.title}}</router-link>
             </h3>
             <div class="post-abstract">{{article.content}}</div>
             <div class="post-meta">
@@ -35,12 +36,17 @@ export default{
             pages:[],
             curPage:1,
             pageCount:Number
+            //category:'all',
+            //author:'all'
         }
     },
     methods:{
         //获取所有文章
-        getArticleList(n){
-            this.$http.get('/article?page='+ n).then(function(res){
+        getArticleList(page){
+            this.$http.get('/article?page='+ page).then(function(res){
+                //console.log('result:'+JSON.stringify(res.body.result));
+
+
                 this.pages=[];
 
                 this.articles = res.body.result;

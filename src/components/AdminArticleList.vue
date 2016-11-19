@@ -20,29 +20,39 @@
             </div>
             <button class="btn btn-info">筛选</button>
         </form>
-        <div class="table-responsive">
+
+        <div class="table-responsive articleList">
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th width="30%">标题</th>
-                    <th>分类</th>
-                    <th>作者</th>
+                    <th width="30%">
+                        <a href="javascript:;" @click="sortList(1, 'title', sortdir)">标题
+                            <span v-show="showArrow=='title'">{{arrow}}</span></a>
+                    </th>
+                    <th>
+                        <a href="javascript:;" @click="sortList(1, 'category', sortdir)">分类
+                            <span v-show="showArrow=='category'">{{arrow}}</span></a></th>
+                    <th>
+                        <a href="javascript:;" @click="sortList(1, 'author', sortdir)">作者
+                            <span v-show="showArrow=='author'">{{arrow}}</span></a></th>
                     <th>添加时间</th>
                     <th>被赞</th>
                     <th>评论</th>
-                    <th>状态</th>
+                    <th>
+                        <a href="javascript:;" @click="sortList(1, 'published', sortdir)">状态
+                            <span v-show="showArrow=='published'">{{arrow}}</span></a></th>
                     <th>管理</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr v-for="(article,index) in articles">
                     <td>{{article.title}}</td>
-                    <td>{{article.category}}</td>
-                    <td>{{article.author}}</td>
+                    <td>{{article.category.name}}</td>
+                    <td>{{article.author.name}}</td>
                     <td>{{article.created}}</td>
-                    <td>0</td>
-                    <td>3</td>
-                    <td>已发布</td>
+                    <td>{{article.meta.favorites}}</td>
+                    <td>{{article.comments.length}}</td>
+                    <td>{{article.published}}</td>
                     <td>
                         <router-link class="btn btn-sm btn-success" :to="{path:'/userArticle', query:{id:article._id}}">查看</router-link>
                         <router-link class="btn btn-sm btn-info" :to="{path:'/adminAddArticle', query:{id:article._id}}">编辑</router-link>
@@ -52,10 +62,12 @@
                 </tbody>
             </table>
         </div>
+
         <nav>
             <ul class="pagination">
-                <li><a href="#" class="active">1</a></li>
-                <li><a href="#">2</a></li>
+                <li v-for="n in pages" :class="{'active':n==curPage}">
+                    <a href="javascript:;" @click="getArticleList(n, sortby, followPageSort)">{{n}}</a>
+                </li>
             </ul>
         </nav>
     </div>
@@ -64,35 +76,82 @@
 
 </style>
 <script>
-    export default{
-        data(){
-            return{
-                articles:[],
-            }
-        },
-        methods:{
-            //获取所有文章
-            getArticleList(){
-                this.$http.get('/article').then(function(res){
-                    this.articles=eval('('+ res.body +')');
-                },function(res){
-                    alert('获取文章列表失败： '+ res.status);
-                });
-            },
-            //删除文章
-            deleteArticle(id, index){
-                this.$http.delete('/article/' + id).then(function(res){
-                    if(res.status==200) this.articles.splice(index,1);
-                }, function(res){
-                    alert('删除文章列表： '+ res.status);
-                });
-            }
-        },
-        components:{
+import moment from 'moment'
 
-        },
-        created(){
-            this.getArticleList();
+export default{
+    data(){
+        return{
+            articles:[],
+            pages:[],
+            curPage:1,
+            pageCount:Number,
+
+            sortby:'',
+            sortdir:'asc',
+            followPageSort:'',
+            arrow:'',
+            showArrow:'published'
         }
+    },
+    methods:{
+        //获取所有文章
+        getArticleList(page, sortby, sortdir){
+            this.$http.get('/admin/article?page='+page+'&sortby='+sortby+'&sortdir='+sortdir).then(function(res){
+                //console.log('result:'+JSON.stringify(res.body.result));
+
+                this.pages=[];
+
+                this.articles = res.body.result;
+                this.pageCount = res.body.pageCount;
+                this.curPage = res.body.curPage;
+                this.showArrow = res.body.sortby;
+
+                //the time&conent has formated
+                for(let i=0; i<this.articles.length; i++){
+                    this.articles[i].created=moment(this.articles[i].created).format('YYYY-MM-DD HH:MM:SS');
+                }
+
+                for(var i=0; i<this.pageCount; i++){
+                    this.pages.push(i+1);
+                }
+            },function(res){
+                alert('获取文章列表失败： '+ res.status);
+            });
+        },
+
+        //删除文章
+        deleteArticle(id, index){
+            this.$http.delete('/article/' + id).then(function(res){
+                if(res.status==200) this.articles.splice(index,1);
+
+                if(this.articles.length<1){
+                    this.getArticleList(1);
+                }
+            }, function(res){
+                alert('删除文章列表： '+ res.status);
+            });
+        },
+
+        //format: sortby(1, 'title', 'desc')
+        sortList(page, sortby, sortdir){
+            this.sortby=sortby;
+            if(this.sortdir=='desc'){
+                this.arrow='⤓';
+                this.sortdir='asc';
+                this.followPageSort='desc' //点击翻页和点击那个选项正好相反
+            }else{
+                this.arrow='⤒';
+                this.sortdir='desc';
+                this.followPageSort='asc'
+            }
+            this.getArticleList(page, sortby, sortdir);
+        }
+    },
+    components:{
+
+    },
+    created(){
+        this.getArticleList(1, 'created', 'desc');
     }
+}
 </script>

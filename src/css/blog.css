@@ -191,16 +191,36 @@ h6, .h6 {
 .post-comments,
 .post-comment-form {
   margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 .post-comment-item {
   border: 1px dotted #DDDDDD;
   padding: 10px;
-  margin-bottom: 10px;
 }
-
-.post-comment-email {
+.post-comment-list{
+  border: 1px dotted #DDDDDD;
+  margin-bottom: 15px;
+  padding:0;
+  list-style:none
+}
+.post-comment-list li{
   border-bottom: 1px dotted #DDDDDD;
+}
+.post-comment-email{
+  border-bottom: 1px dotted #DDDDDD;
+  padding:10px;
+  margin-bottom:0;
+  font-size: 14px;
+  background: #f1f1f1;
+}
+.post-comment-content{
+  padding:10px;
+  margin-bottom:0;
+  font-size: 14px;
+}
+.alert-info{
+  font-size: 12px;
 }
 
 
