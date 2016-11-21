@@ -13,7 +13,7 @@
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#">注销</a></li>
+                        <li @click="logout"><a href="#">{{user ? user.email : 0}} &nbsp; 注销</a></li>
                         <li><a href="#">帮助</a></li>
                     </ul>
                 </div>
@@ -36,6 +36,33 @@
 import adminNav from './AdminNav.vue'
 
 export default{
+    data(){
+        return{
+            user:null
+        }
+    },
+    methods:{
+        logout(){
+            console.log('注销开始操作');
+            this.$http.get('/logout').then(function(result){
+                this.$router.push('/userArticleList');
+            }, function(res){
+                this.$router.push('/userArticleList');
+            });
+
+        }
+    },
+    created(){
+        this.$http.get('/mysession').then(function(result){
+            if(result.status==200){
+                console.log(result.body);
+                this.user=result.body
+            }
+        }, function(res){
+            console.log('会话失败：'+res.status);
+            this.$router.push('/login');
+        });
+    },
     components:{
         adminNav,
     }

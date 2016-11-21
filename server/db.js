@@ -1,3 +1,4 @@
+const md5 = require("md5");
 const mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
 const Schema = mongoose.Schema;
@@ -33,10 +34,18 @@ const CategorySchema = new Schema({
     created:    {type:Date}
 });
 
+//MD5密码和原密码匹配
+UserSchema.methods.verifyPassword= function(password){
+    let isMatch= md5(password)=== this.password;
+    console.log('UserSchema.methods.verifyPassword: ', password, this.password, isMatch);
+    return isMatch;
+};
+
 const Models={
     Article : mongoose.model('Article', ArticleSchema),
     User : mongoose.model('User', UserSchema),
-    Category : mongoose.model('Category', CategorySchema)
+    Category : mongoose.model('Category', CategorySchema),
+    verify : UserSchema.methods.verifyPassword
 };
 
 /**

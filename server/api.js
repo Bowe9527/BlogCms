@@ -1,8 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const slug=require('slug');
+const pinyin = require("pinyin");
+const md5 = require("md5");
+const passport = require('passport');
 const router = express.Router();
 const db = require('./db');
 
+//require('./passport').init();
 /**
  * API implacement
  * 接口符合RESTful风格
@@ -26,8 +31,14 @@ let n=0;
  * }
  */
 router.get('/article', function(req, res, next){
-    db.Article.find({published:true})
-        .sort('created')
+    const keyword= req.query.keyword;
+    const conditions={published:true};
+    if(keyword){
+        conditions.title=new RegExp(keyword.trim(), 'i');
+        conditions.content=new RegExp(keyword.trim(), 'i');
+    }
+    db.Article.find(conditions)
+        .sort('-created')
         .populate('author')
         .populate('category')
         .exec(function(err, result){
@@ -52,7 +63,7 @@ router.get('/article', function(req, res, next){
 });
 
 /**
- * 查一个文章
+ * 前台查一个文章
  * type:get
  * Parameters: /articel/id || /article/slug
  * Response:{Article}
@@ -81,7 +92,7 @@ router.get('/article/:id', function(req, res, next){
 });
 
 /**
- * 点赞一篇文章
+ * 前台点赞一篇文章
  * type:get
  * Parameters: /favorite/id  || /favorite/slug
  * Response:None
@@ -117,12 +128,12 @@ router.get('/favorite/:id', function(req, res, next){
 });
 
 /**
- * 评论一篇文章
+ * 前台评论一篇文章
  * type:post
  * Parameters: /comment/id  || /comment/slug
  * Response:None
  */
-router.post('/comment/:id', function(req, res, next){
+router.post('/comment/:id', requireLogin, function(req, res, next){
     if(!req.params.id){
         return next(new Error('未提供操作条目'));
     }
@@ -157,65 +168,147 @@ router.post('/comment/:id', function(req, res, next){
     });
 });
 
-//增文章
-router.post("/article", function(req, res){
-    let article = new db.Article({
-        title:req.body.title,
-        content: req.body.content,
-        author: req.body.author,
-        category:req.body.category,
-        created: new Date
-    });
+
+
+/**
+ * 后台发布文章
+ * type:post
+ * Parameters: /article
+ * Response: {Article}
+ */
+router.post("/article", requireLogin, function(req, res){
+    //服务端验证字段
+    req.checkBody('title', '文章标题不能为空').notEmpty();
+    req.checkBody('category', '文章分类不能为空').notEmpty();
+    req.checkBody('content', '文章内容不能为空').notEmpty();
+
+    let errors=req.validationErrors();
+    if(errors) return res.status(301).send(errors).end();
+
+    var title=req.body.title.trim();
+    var category=req.body.category.trim();
+    var content=req.body.content;
+
+    db.User.findOne({}, function (err, user) {
+        if(err) throw err;
+
+        //汉字转拼音
+        let py=pinyin(title, {
+            style: pinyin.STYLE_NORMAL,
+            heteronym:false
+        }).map(function (item) {
+            return item[0];
+        }).join(' ');
+
+        let getOjb={
+            title:title,
+            slug:slug(py),
+            content: content,
+            category:category,
+            author: user,
+            created: new Date,
+            meta:{favorites:0},
+            comments:[],
+            published: true
+        };
+        console.log(JSON.stringify(getOjb));
+        let article = new db.Article(getOjb);
+
+        article.save(function(err, result){
+            if ( err ) {
+                console.log('add article err:'+ err);
+                throw err;
+            }else{
+                console.log('add article err:'+ err);
+                console.log('add article 文章保存成功'+ n++);
+                //res.redirect('/adminArticleList');
+                res.status(200).send(JSON.stringify(result)).end();
+            }
+
+        });
+    })
+});
+
+/**
+ * 后台修改文章时先查一个文章
+ * type:get
+ * Parameters: /edit/:id
+ * Response:{Article}
+ */
+router.get('/edit/:id', requireLogin, getAritcleById, function(req, res, next){
+    console.log('get article '+ n++, 'params: '+JSON.stringify(req.params));
+    res.status(200).send(JSON.stringify(req.result)).end();
+});
+
+/**
+ * 后台修改文章
+ * type:put
+ * Parameters: /article/:id
+ * Response:{Article}
+ */
+router.put("/article/:id", requireLogin, getAritcleById, function(req, res, next){
+    console.log('modify article ' + n++, 'params: '+JSON.stringify(req.params));
+    const article=req.result;
+    const title=req.body.title.trim();
+    const category=req.body.category.trim();
+    const content=req.body.content;
+
+    //服务端验证字段
+    req.checkBody('title', '文章标题不能为空').notEmpty();
+    req.checkBody('category', '文章分类不能为空').notEmpty();
+    req.checkBody('content', '文章内容不能为空').notEmpty();
+
+    let errors=req.validationErrors();
+    if(errors) return res.status(301).send(errors).end();
+
+    //汉字转拼音
+    let py=pinyin(title, {
+        style: pinyin.STYLE_NORMAL,
+        heteronym:false
+    }).map(function (item) {
+        return item[0];
+    }).join(' ');
+
+    article.title=title;
+    article.slug=slug(py);
+    article.content=content;
+    article.category=category;
+    article.created=new Date;
 
     article.save(function(err, result){
-        if ( err ) throw err;
-        console.log('add article '+ n++);
-        res.status(200).send(JSON.stringify(result)).end();
-    });
-});
-
-//改文章
-router.put("/article/:id", function(req, res){
-    db.Article.findOne({_id: req.params.id}, function(err, result){
-        console.log('modify article ' + n++, 'params: '+JSON.stringify(req.params));
-
-        if ( err ) throw err;
-        if(!result){
-            res.json({
-                message:"文章ID: " + req.params.id+" 没有找到",
-            });
-        }
-
-        result.title   = req.body.title;
-        result.content   = req.body.content;
-        result.author = req.body.author;
-        result.category = req.body.category;
-        result.created  = new Date;
-
-        result.save(function(err, result){
-            if ( err ) throw err;
+        if ( err ) {
+            console.log('edit article err:'+ err);
+            throw err;
+        }else{
+            console.log('edit article err:'+ err);
+            console.log('edit article 文章修改成功'+ n++);
+            //res.redirect('/adminArticleList');
             res.status(200).send(JSON.stringify(result)).end();
-        });
-
+        }
     });
 });
 
-//删文章
-router.delete("/article/:id", function(req, res){
+/**
+ * 后台删除文章
+ * type:delect
+ * Parameters: /article/:id
+ * Response:None
+ */
+router.delete("/article/:id", requireLogin, function(req, res){
     db.Article.findOneAndRemove({_id: req.params.id}, function(err, result){
         console.log('delete article '+ n++, 'params: '+JSON.stringify(req.params));
 
         if ( err ) throw err;
         //if(result) req.flash('success', '文章删除成功');
-        // res.status(200).send(JSON.stringify(result)).end();
-        res.status(200).redirect('/adminArticleList');
+        res.status(200).send(JSON.stringify(result)).end();
+        //res.status(200).redirect('/adminArticleList');
     });
 });
 
 
 
 /**
- * 查全部分类
+ * 前后台查全部分类
  * Parameters: /category?page=n
  * Response:{
  *      result:[{Article}],
@@ -235,10 +328,30 @@ router.get('/category', function(req, res, next){
 });
 
 /**
- * 查单个分类的文章聚合
+ * 前后台查全部作者
+ * Parameters: /user
+ * Response:{
+ *      result:[{Article}],
+        pageCount:n,
+        curPage:n,
+ * }
+ */
+router.get('/user', function(req, res, next){
+    console.log('get author list '+ n++);
+    db.User.find({})
+        .sort('created')
+        .exec(function(err, result){
+            if ( err ) throw next(err);
+
+            res.status(200).send(result).end();
+        });
+});
+
+/**
+ * 后台查单个分类的文章聚合
  * 废弃
  */
-router.get('/category/:id', function(req, res, next){
+router.get('/category/:id', requireLogin, function(req, res, next){
     //res.jsonp(req.params);
     db.Category.findOne({_id: req.params.id}).exec(function(err, category){
         console.log('get category all articles '+ n++,  'params: '+JSON.stringify(req.params));
@@ -266,7 +379,8 @@ router.get('/category/:id', function(req, res, next){
  * return data to the front
  * query by category and author
  * slice the pages : curPage-current page; pageSize-count pre page; pageCount-total pages
- * sort by
+ * sort by 5 type
+ * fliter by category and author
  * type:get
  * Parameters: /articel?page=n
  * Response:{
@@ -274,8 +388,13 @@ router.get('/category/:id', function(req, res, next){
         pageCount:n,
         curPage:n,
  * }
+ * page:1
+ sortby:title
+ sortdir:asc
+ categoryId:undefined
+ userId:undefined
  */
-router.get('/admin/article', function(req, res, next){
+router.get('/admin/article', requireLogin, function(req, res, next){
     //sort
     let sortby=req.query.sortby ? req.query.sortby : 'created';
     let sortdir=req.query.sortdir ? req.query.sortdir : 'desc';
@@ -290,30 +409,154 @@ router.get('/admin/article', function(req, res, next){
     let sortObj={};
     sortObj[sortby]=sortdir;
 
-    db.Article.find({published:true})
-        .sort(sortObj)
+    //condition
+    let conditions={};
+    if(req.query.categoryId){
+        conditions.category=req.query.categoryId.trim();
+    }
+    if(req.query.userId){
+        conditions.author=req.query.userId.trim();
+    }
+    if(req.query.keyword){
+        conditions.title=new RegExp(req.query.keyword.trim(), 'i');
+        conditions.content=new RegExp(req.query.keyword.trim(), 'i');
+    }
+    conditions.published=true;
+
+    db.User.find({}, function (err, users) { //查询每个user发布的文章
+        if ( err ) throw next(err);
+
+        db.Article.find(conditions)
+            .sort(sortObj)
+            .populate('author')
+            .populate('category')
+            .exec(function(err, articles){
+                console.log('get article list '+ n++, 'query: '+JSON.stringify(req.query));
+
+                if ( err ) throw next(err);
+                let curPage=Math.abs(parseInt(req.query.page||1, 10));
+                let pageSize=5;
+                let totalCount=articles.length;
+                let pageCount=Math.ceil(totalCount/pageSize);
+
+                if(curPage>pageCount) curPage=pageCount;
+
+                let back={
+                    result: articles.slice((curPage-1)*pageSize, curPage*pageSize),
+                    pageCount:pageCount,
+                    curPage:curPage,
+                    sortby:sortby,
+                    //author:author,
+                    pretty:true
+                };
+                res.status(200).send(back).end();
+            });
+    });
+});
+
+/**
+ * share find article middleware
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
+function  getAritcleById(req,res,next) {
+    let id=req.params.id;
+    if(!id) {
+        return next(new Error('未提供查询字段'));
+    }
+
+    db.Article.findOne({_id: id})
         .populate('author')
         .populate('category')
         .exec(function(err, result){
-            console.log('get article list '+ n++, 'query: '+JSON.stringify(req.query));
-
-            if ( err ) throw next(err);
-            let curPage=Math.abs(parseInt(req.query.page||1, 10));
-            let pageSize=5;
-            let totalCount=result.length;
-            let pageCount=Math.ceil(totalCount/pageSize);
-
-            if(curPage>pageCount) curPage=pageCount;
-
-            let back={
-                result: result.slice((curPage-1)*pageSize, curPage*pageSize),
-                pageCount:pageCount,
-                curPage:curPage,
-                sortby:sortby,
-                pretty:true
-            };
-            res.status(200).send(back).end();
+            if ( err ) {
+                throw err;
+            }
+            if(!result){
+                return next(new Error('article not found: ', id));
+            }
+            req.result=result;
+            next();
         });
+}
+
+
+router.post('/login', passport.authenticate('local', {
+        failureRedirect: '/login',
+        failureFlash: '用户名或密码错误'
+    }), function(req, res, next){
+    res.status(200).send(JSON.stringify(req.body));
+    console.log('user login success: '+JSON.stringify(req.body));
+
+    //res.jsonp(req.body);
+
 });
+
+/**
+ * 注册
+ */
+router.post('/reg', function(req, res, next){
+    const email= req.body.email;
+    const password= req.body.password;
+    const comfirmPassword= req.body.comfirmPassword;
+
+    console.log('email: '+email, 'pass: '+password, 'repass:'+comfirmPassword);
+
+    //服务端验证字段
+    req.checkBody('email', '须为邮箱且不能为空').notEmpty().isEmail();
+    req.checkBody('password', '密码不能为空').notEmpty();
+    req.checkBody('comfirmPassword', '重复密码不能为空且两次密码须一致').notEmpty().equals(password);
+
+    let errors=req.validationErrors();
+    if(errors) return res.status(301).send(errors).end();
+
+    const user= new db.User({
+        name: email.split('@').shift(),
+        email:email,
+        password:md5(password),
+        created:new Date
+    });
+
+    user.save(function(err, result){
+        if ( err ) {
+            console.log('reg err:'+ err);
+            throw err;
+        }else{
+            console.log('用户注册成功info: '+ n++);
+            //res.redirect('/adminArticleList');
+            res.status(200).send(JSON.stringify(result)).end();
+        }
+    });
+});
+
+//后台首页获取登录信息 展示出来
+router.get('/mysession', function(req, res, next){
+    console.log('call mysession: '+ n++);
+    let user=req.user;
+    console.log('mysession: '+user);
+
+    if(!user){
+        return res.status(301).end();
+    }
+    res.status(200).send(user).end();
+});
+
+//注销
+router.get('/logout', requireLogin, function(req, res, next){
+    req.logout();
+    res.status(200).send(user).end();
+});
+
+//用户权限校验
+// module.exports.requireLogin= function (req, res, next) {
+function requireLogin(req, res, next) {
+    if(req.user){
+        next();
+    }else{
+        next(new Error('登录用户才能访问'));
+    }
+};
 
 module.exports = router;

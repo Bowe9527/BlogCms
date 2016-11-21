@@ -8,8 +8,8 @@
             <div class="post-abstract">{{article.content}}</div>
             <div class="post-meta">
                 <span class="post-created">时间:&nbsp; {{article.created}}</span>
-                <span class="post-author">作者:&nbsp;  {{article.author.name}}</span>
-                <span class="post-category">分类:&nbsp;  {{article.category.name}}</span>
+                <span class="post-author">作者:&nbsp;  {{article.author ? article.author.name : 0}}</span>
+                <span class="post-category">分类:&nbsp;  {{article.category ? article.category.name : 0}}</span>
                 <span class="post-comment">评论:&nbsp;  {{article.comments.length}}</span>
                 <span class="post-favorite">被赞:&nbsp; {{article.meta.favourates}}</span>
                 <router-link :to="{path:'/userArticle', query:{id:article._id}}">查看全文</router-link>
@@ -17,11 +17,11 @@
         </div>
 
         <!--<nav>-->
-            <!--<ul class="pagination">-->
-                <!--<li v-for="n in pages" :class="{'active':n==curPage}">-->
-                    <!--<a href="javascript:;" @click="getArticleList(n)">{{n}}</a>-->
-                <!--</li>-->
-            <!--</ul>-->
+        <!--<ul class="pagination">-->
+        <!--<li v-for="n in pages" :class="{'active':n==curPage}">-->
+        <!--<a href="javascript:;" @click="getArticleList(n)">{{n}}</a>-->
+        <!--</li>-->
+        <!--</ul>-->
         <!--</nav>-->
     </div>
 </template>

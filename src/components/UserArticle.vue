@@ -4,19 +4,19 @@
         <div class="post post-view">
             <div class="post-meta">
                 <span class="post-created"><i class="fa fa-calendar"></i>&nbsp; {{article.created}}</span>
-                <span class="post-author"><i class="fa fa-user"></i>&nbsp;  {{article.author.name}}</span>
-                <span class="post-category"><i class="fa fa-shopping-basket"></i>&nbsp;  {{article.category.name}}</span>
-                <span class="post-comment"><i class="fa fa-comment"></i>&nbsp;  {{article.comments.length}}</span>
+                <span class="post-author"><i class="fa fa-user"></i>&nbsp;  {{article.author ? article.author.name : 0}}</span>
+                <span class="post-category"><i class="fa fa-shopping-basket"></i>&nbsp;  {{article.category?  article.category.name : 0}}</span>
+                <span class="post-comment"><i class="fa fa-comment"></i>&nbsp;  {{article.comments ? article.comments.length : 0}}</span>
                 <span class="post-favorite">
-                    <a href="javascript:;" @click="setZan(article._id)"><i class="fa fa-star"></i>&nbsp; {{article.meta.favorites}}</a>
+                    <a href="javascript:;" @click="setZan(article._id)"><i class="fa fa-star"></i>&nbsp; {{article.meta ? article.meta.favorites : 0}}</a>
                 </span>
             </div>
-            <div class="post-content">{{article.content}}</div>
+            <div class="post-content" v-html="article.content"></div>
         </div><!-- /.blog-post -->
 
         <div class="post-comment">
             <h3>用户评论</h3>
-            <ul class="post-comment-list" v-show="article.comments.length!=0">
+            <ul class="post-comment-list" v-show="article.comments ? article.comments.length!=0 : 0">
                 <li v-for="item in article.comments">
                     <h5 class="post-comment-email">
                         {{item.author}}
@@ -26,7 +26,7 @@
                 </li>
             </ul>
 
-            <p class="alert alert-info" v-show="article.comments.length==0">还没有评论</p>
+            <p class="alert alert-info" v-show="article.comments ? article.comments.length==0 : 0">还没有评论</p>
 
             <form class="post-comment-form">
                 <h3>添加评论</h3>
@@ -53,7 +53,7 @@ export default{
             article:{},
             id:'',
             commentAuthor:'nodeblog@gmail.com',
-            commentContent:''
+            commentContent:'',
         }
     },
     methods:{
