@@ -532,14 +532,14 @@ router.post('/reg', function(req, res, next){
 });
 
 //后台首页获取登录信息 展示出来
-router.get('/mysession', function(req, res, next){
+router.get('/mysession', requireLogin, function(req, res, next){
     console.log('call mysession: '+ n++);
     let user=req.user;
-    console.log('mysession: '+user);
-
-    if(!user){
-        return res.status(301).end();
-    }
+    // console.log('mysession: '+user);
+    //
+    // if(!user){
+    //     return res.status(301).end();
+    // }
     res.status(200).send(user).end();
 });
 
