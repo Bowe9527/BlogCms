@@ -4,16 +4,16 @@ const LocalStrategy = require('passport-local').Strategy;
 const db = require('./db');
 
 module.exports.init=function () {
-    console.log('passport.local.init');
+    //console.log('passport.local.init');
 
     passport.use(new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password'
     },function(email, password, done) {
-        console.log('passport.local.find: ', email);
+        //console.log('passport.local.find: ', email);
 
         db.User.findOne({ email: email }, function (err, user) {
-            console.log('passport.local.find: ', user, err);
+            //console.log('passport.local.find: ', user, err);
 
             if (err) {
                 return done(err);
@@ -29,13 +29,13 @@ module.exports.init=function () {
     }));
 
     passport.serializeUser(function(user, done) {
-        console.log('passport.local.serializeUser: ', user);
+        //console.log('passport.local.serializeUser: ', user);
 
         done(null, user._id);
     });
 
     passport.deserializeUser(function(id, done) {
-        console.log('passport.local.deserializeUser: ', id);
+        //console.log('passport.local.deserializeUser: ', id);
 
         db.User.findById(id, function (err, user) {
             done(err, user);

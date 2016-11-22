@@ -7,7 +7,6 @@ const passport = require('passport');
 const router = express.Router();
 const db = require('./db');
 
-//require('./passport').init();
 /**
  * API implacement
  * 接口符合RESTful风格
@@ -46,7 +45,7 @@ router.get('/article', function(req, res, next){
 
             if ( err ) throw next(err);
             let curPage=Math.abs(parseInt(req.query.page||1, 10));
-            let pageSize=5;
+            let pageSize=10;
             let totalCount=result.length;
             let pageCount=Math.ceil(totalCount/pageSize);
 
@@ -133,7 +132,7 @@ router.get('/favorite/:id', function(req, res, next){
  * Parameters: /comment/id  || /comment/slug
  * Response:None
  */
-router.post('/comment/:id', requireLogin, function(req, res, next){
+router.post('/comment/:id', function(req, res, next){
     if(!req.params.id){
         return next(new Error('未提供操作条目'));
     }
@@ -327,6 +326,110 @@ router.get('/category', function(req, res, next){
         });
 });
 
+
+
+
+/**
+ * 后台添加分类
+ * type:post
+ * Parameters: /category
+ * Response: {Category}
+ */
+router.post("/category", requireLogin, function(req, res){
+    //服务端验证字段
+    req.checkBody('name', '分类名称不能为空').notEmpty();
+
+    let errors=req.validationErrors();
+    if(errors) return res.status(301).send(errors).end();
+
+    var name=req.body.name.trim();
+
+    db.User.findOne({}, function (err, user) {
+        if(err) throw err;
+
+        //汉字转拼音
+        let py=pinyin(name, {
+            style: pinyin.STYLE_NORMAL,
+            heteronym:false
+        }).map(function (item) {
+            return item[0];
+        }).join(' ');
+
+        let getOjb={
+            name:name,
+            slug:slug(py),
+            author: user,
+            created: new Date,
+        };
+        console.log(JSON.stringify(getOjb));
+        let category = new db.Category(getOjb);
+
+        category.save(function(err, result){
+            if ( err ) {
+                console.log('add category err:'+ err);
+                throw err;
+            }else{
+                console.log('add category 分类保存成功'+ n++);
+                res.status(200).send(JSON.stringify(result)).end();
+            }
+        });
+    })
+});
+
+
+/**
+ * 后台修改分类时先查询分类
+ * type:get
+ * Parameters: /edit/:id
+ * Response:{Article}
+ */
+router.get('/category/edit/:id', requireLogin, getCategoryById, function(req, res, next){
+    console.log('get category '+ n++, 'params: '+JSON.stringify(req.params));
+    res.status(200).send(JSON.stringify(req.result)).end();
+});
+
+/**
+ * 后台修改分类
+ * type:put
+ * Parameters: /article/:id
+ * Response:{Article}
+ */
+router.put("/category/:id", requireLogin, getCategoryById, function(req, res, next){
+    console.log('modify category ' + n++, 'params: '+JSON.stringify(req.params));
+    const category=req.result;
+    const name=req.body.name.trim();
+
+    //服务端验证字段
+    req.checkBody('name', '分类名称不能为空').notEmpty();
+
+    let errors=req.validationErrors();
+    if(errors) return res.status(301).send(errors).end();
+
+    //汉字转拼音
+    let py=pinyin(name, {
+        style: pinyin.STYLE_NORMAL,
+        heteronym:false
+    }).map(function (item) {
+        return item[0];
+    }).join(' ');
+
+    category.name=name;
+    category.slug=slug(py);
+    category.created=new Date;
+
+    category.save(function(err, result){
+        if ( err ) {
+            console.log('edit category err:'+ err);
+            throw err;
+        }else{
+            console.log('edit category err:'+ err);
+            console.log('edit category 分类修改成功'+ n++);
+            res.status(200).send(JSON.stringify(result)).end();
+        }
+    });
+});
+
+
 /**
  * 前后台查全部作者
  * Parameters: /user
@@ -345,29 +448,6 @@ router.get('/user', function(req, res, next){
 
             res.status(200).send(result).end();
         });
-});
-
-/**
- * 后台查单个分类的文章聚合
- * 废弃
- */
-router.get('/category/:id', requireLogin, function(req, res, next){
-    //res.jsonp(req.params);
-    db.Category.findOne({_id: req.params.id}).exec(function(err, category){
-        console.log('get category all articles '+ n++,  'params: '+JSON.stringify(req.params));
-
-        if ( err ) throw next(err);
-
-        db.Article.find({category: category, published:true})
-            .sort('created')
-            .populate('author')
-            .populate('category')
-            .exec(function (err, articles) {
-                if ( err ) throw next(err);
-
-                res.status(200).send(articles).end();
-            })
-    });
 });
 
 
@@ -435,7 +515,7 @@ router.get('/admin/article', requireLogin, function(req, res, next){
 
                 if ( err ) throw next(err);
                 let curPage=Math.abs(parseInt(req.query.page||1, 10));
-                let pageSize=5;
+                let pageSize=10;
                 let totalCount=articles.length;
                 let pageCount=Math.ceil(totalCount/pageSize);
 
@@ -483,6 +563,35 @@ function  getAritcleById(req,res,next) {
 }
 
 
+/**
+ * share find category middleware
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
+function  getCategoryById(req,res,next) {
+    let id=req.params.id;
+    if(!id) {
+        return next(new Error('未提供查询字段'));
+    }
+
+    db.Category.findOne({_id: id}).exec(function(err, result){
+        if ( err ) {
+            console.log('get category: '+ err);
+            throw err;
+        }
+        if(!result){
+            return next(new Error('article not found: ', id));
+        }
+        req.result=result;
+        next();
+    });
+}
+
+/**
+ * 登录
+ */
 router.post('/login', passport.authenticate('local', {
         failureRedirect: '/login',
         failureFlash: '用户名或密码错误'
@@ -509,7 +618,7 @@ router.post('/reg', function(req, res, next){
     req.checkBody('password', '密码不能为空').notEmpty();
     req.checkBody('comfirmPassword', '重复密码不能为空且两次密码须一致').notEmpty().equals(password);
 
-    let errors=req.validationErrors();
+    let errors=req.validationErrors(); console.log(errors);
     if(errors) return res.status(301).send(errors).end();
 
     const user= new db.User({
@@ -531,7 +640,42 @@ router.post('/reg', function(req, res, next){
     });
 });
 
-//后台首页获取登录信息 展示出来
+/**
+ * 修改密码
+ */
+router.post('/password', function(req, res, next){
+    const password= req.body.password.trim();
+    const comfirmPassword= req.body.comfirmPassword.trim();
+    const getUser= req.body.user;
+
+    console.log('newPwd: '+password,'comfirmPassword: '+comfirmPassword, 'id:'+getUser._id);
+
+    //服务端验证字段
+    req.checkBody('password', '密码不能为空').notEmpty();
+    req.checkBody('comfirmPassword', '重复密码不能为空且两次密码须一致').notEmpty().equals(password);
+
+    let errors=req.validationErrors(); console.log(errors);
+    if(errors) return res.status(301).send(errors).end();
+    
+    db.User.findOne({_id: getUser._id}).exec(function (err,user) {
+        //user.name= getUser.name;
+        //user.email= getUser.email;
+        user.password=md5(password);
+
+        user.save(function(err, result){
+            if ( err ) {
+                console.log('modify pwd err:'+ err);
+                throw err;
+            }else{
+                console.log('修改密码成功info: '+ n++);
+                res.status(200).send(JSON.stringify(result)).end();
+            }
+        });
+    });
+});
+
+
+//后台获取登录信息 展示出来
 router.get('/mysession', requireLogin, function(req, res, next){
     console.log('call mysession: '+ n++);
     let user=req.user;
@@ -544,7 +688,7 @@ router.get('/mysession', requireLogin, function(req, res, next){
 });
 
 //注销
-router.get('/logout', requireLogin, function(req, res, next){
+router.get('/logout', function(req, res, next){
     req.logout();
     res.status(200).send(user).end();
 });

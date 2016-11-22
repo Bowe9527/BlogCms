@@ -14,7 +14,7 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
                         <li @click="logout"><a href="#">{{user ? user.email : 0}} &nbsp; 注销</a></li>
-                        <li><a href="#">帮助</a></li>
+                        <li><a href="#">欢迎</a></li>
                     </ul>
                 </div>
             </div>

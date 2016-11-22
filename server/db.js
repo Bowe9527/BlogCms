@@ -37,7 +37,7 @@ const CategorySchema = new Schema({
 //MD5密码和原密码匹配
 UserSchema.methods.verifyPassword= function(password){
     let isMatch= md5(password)=== this.password;
-    console.log('UserSchema.methods.verifyPassword: ', password, this.password, isMatch);
+    //console.log('UserSchema.methods.verifyPassword: ', password, this.password, isMatch);
     return isMatch;
 };
 

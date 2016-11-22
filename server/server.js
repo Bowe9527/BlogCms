@@ -63,7 +63,7 @@ app.use(function (req, res, next) {
 app.use(function (req, res, next) {
     //res.locals.messages = messages(req, res);
     res.user= req.user;
-    console.log('session data: '+ JSON.stringify(req.session), '/n res app locals: '+res.user); //session 打印出来
+    //console.log('session data: '+ JSON.stringify(req.session), 'res app locals: '+res.user); //session 打印出来
     next();
 });
 

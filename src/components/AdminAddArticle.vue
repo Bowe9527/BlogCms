@@ -43,7 +43,6 @@ export default{
     },
     methods:{
         add(){
-            //let content2=CKEDITOR.instances.editor1.getData();
 
             //改
             if(this.id!=''){
@@ -87,14 +86,8 @@ export default{
         getModifyArticle(id){
             this.$http.get('/edit/'+ id).then(function(res){
                 const article=eval('('+res.body+')');
-
                 this.title=article.title;
                 this.content=article.content;
-                //console.log('con:'+CKEDITOR.instances.editor1.getData());
-                //if(!CKEDITOR.instances.editor1.getData()){
-                //   CKEDITOR.instances.editor1.setData(article.content);
-                //}
-                //console.log('con2:'+CKEDITOR.instances.editor1.getData());
 
                 console.log('cate:'+this.category)
                 if(!this.category){
@@ -113,7 +106,6 @@ export default{
                 alert('获取分类失败： '+ res.status);
             });
         }
-
     },
     created(){
         this.submit='添加';
@@ -125,14 +117,6 @@ export default{
             this.id='';
         }
         this.getCategories();
-
-    },
-    mounted(){
-        //loader 3rd rich editor, note: must below mounted
-        //CKEDITOR.replace( 'editor1' );
-
-        //console.log('con3:'+CKEDITOR.instances.editor1.getData());
-
     }
 }
 </script>
