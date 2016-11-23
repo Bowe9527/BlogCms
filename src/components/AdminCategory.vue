@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2 class="sub-header">分类列表 </h2>
-        <div class="table-responsive">
+        <div class="table-responsive articleList">
             <table class="table table-striped">
                 <thead>
                 <tr>
@@ -18,7 +18,7 @@
                     <td>{{item.created}}</td>
                     <td>
                         <router-link class="btn btn-sm btn-success" :to="{name:'userCategoryArticleList', query:{id:item._id, slug:item.slug}}">查看</router-link>
-                        <router-link class="btn btn-sm btn-info" :to="{path:'/hadminAddCategory', query:{id:item._id}}">编辑</router-link>
+                        <router-link class="btn btn-sm btn-info" :to="{path:'/adminAddCategory', query:{id:item._id}}">编辑</router-link>
                         <!--<a href="javascript:;" class="btn btn-sm btn-danger" @click="deleteCategory(item._id, index)">删除</a>-->
                     </td>
                 </tr>
@@ -27,7 +27,7 @@
         </div>
     </div>
 </template>
-<style>
+<style scoped src="../css/dashboard.css">
 
 </style>
 <script>

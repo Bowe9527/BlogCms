@@ -6,15 +6,17 @@
 
 ## Feauter
 
-* 前后台的CURD
+* 资源的CURD
+* 密码使用MD5加密
+* 登录使用passport验证登录
+* 用户会话记录
 
 
 ## 前端
-* Vue.js
-* Vue-Router
+* Vue.js2.0
+* Vue-Router2.0
 * Vue-resource
 * Vue-loader
-* Bootstrap
 
 ## 后端
 * Node.js
@@ -25,30 +27,37 @@
 * mongoose
 
 ## 工具和语言
+* Bootstrap
 * Webpack
-* ECMAScript6
+* ES2015
 * HTML5
-* Chrome V8
 * vue-cli
 
-
-
 ## 主要依赖包
-* webpack(webpack-dev-server)
-* vue-loader
-* vue-html-loader css-loader vue-style-loader
 * vue-html-loader css-loader vue-style-loader
 * vue-hot-reload-api
-* babel-loader babel-core babel-plugin-transform-runtime babel-preset-es2015 babel-runtime
+* babel-loader
+* babel-core
+* babel-plugin-transform-runtime
+* babel-preset-es2015
+* babel-runtime
 * copy-webpack-plugin
 * extract-text-webpack-plugin
+* Bootstrap
 * FontAwesome
+* express-session
+* express-validator
+* slug
+* pinyin
+* md5
+* passport
+* connection-mongo
+* moment
+
 
 ## 本地测试
-* 安装node环境, nodejs.org
-* 安装mongodb数据库,mongodb.org, MAC下可以brew install mongoldb安装；使用方法http://docs.mongoing.com/manual-zh/
-* 查看本地是否开启mongo进程：ps -A | grep mongo
-* MAC开启服务命令：mongod --dbpath "/usr/local/var/mongodb" （前提是没有修改默认路径）
+* 安装node环境，
+* 安装mongodb数据库并开启服务（mac命令：mongod --dbpath "/usr/local/var/mongodb" （前提是没有修改默认路径））
 
 
 克隆远程库
@@ -70,4 +79,6 @@ node server
 ```
 打开浏览器输入http://localhost:3300/
 
-## 持续完善中
+# 感谢该感谢的人
+
+

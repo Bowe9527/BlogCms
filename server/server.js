@@ -90,8 +90,6 @@ require('./passport').init();
 
 app.use(api);   //最好放在下边
 
-
-
 /**
  * 设置静态资源目录为dist
  * 排除api接口的路由，向浏览器发送根文件
@@ -105,7 +103,6 @@ app.get('*', function (req, res, next) {
         next();
     }
 });
-
 
 app.listen(app.get('port'), function(){
     console.log('Server up: http://localhost:' + app.get('port'));

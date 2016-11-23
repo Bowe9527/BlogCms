@@ -1,3 +1,6 @@
+/**
+ * 随机生成N多文章
+ */
 const express = require('express');
 const loremipsum = require('lorem-ipsum');
 const slug=require('slug');
@@ -34,8 +37,6 @@ db.User.findOne(function(err, user){
         });
     })
 });
-
-
 
 app.set('port', (process.env.port || 3300));
 app.listen(app.get('port'), function(){

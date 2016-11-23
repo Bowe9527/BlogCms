@@ -12,7 +12,7 @@ const db = require('./db');
  * 接口符合RESTful风格
  */
 
-let n=0;
+let n=0;  //for trace output
 /**
  * 前台 查全部文章
  * sort by created
@@ -318,7 +318,7 @@ router.delete("/article/:id", requireLogin, function(req, res){
 router.get('/category', function(req, res, next){
     console.log('get category list '+ n++);
     db.Category.find({})
-        .sort('created')
+        .sort('-created')
         .exec(function(err, result){
             if ( err ) throw next(err);
 
@@ -433,10 +433,7 @@ router.put("/category/:id", requireLogin, getCategoryById, function(req, res, ne
 /**
  * 前后台查全部作者
  * Parameters: /user
- * Response:{
- *      result:[{Article}],
-        pageCount:n,
-        curPage:n,
+ * Response:[{User}]
  * }
  */
 router.get('/user', function(req, res, next){
@@ -450,29 +447,53 @@ router.get('/user', function(req, res, next){
         });
 });
 
+/**
+ * 前后台查单个分类的文章聚合
+ *
+ */
+router.get('/category/:id', function(req, res, next){
+    //res.jsonp(req.params);
+    db.Category.findOne({_id: req.params.id}).exec(function(err, category){
+        console.log('get category all articles '+ n++,  'params: '+JSON.stringify(req.params));
+
+        if ( err ) throw next(err);
+
+        db.Article.find({category: category, published:true})
+            .sort('created')
+            .populate('author')
+            .populate('category')
+            .exec(function (err, articles) {
+                if ( err ) throw next(err);
+
+                res.status(200).send(articles).end();
+            })
+    });
+});
+
 
 
 /**
  * 后台 查全部文章
  * sort by created
  * inflated the article's ref (author and category)
- * return data to the front
+ * return data to the frontEnd
  * query by category and author
  * slice the pages : curPage-current page; pageSize-count pre page; pageCount-total pages
  * sort by 5 type
  * fliter by category and author
  * type:get
- * Parameters: /articel?page=n
+ * Parameters: /articel?queries
  * Response:{
  *      result:[{Article}],
         pageCount:n,
         curPage:n,
  * }
+ * Default value:
  * page:1
- sortby:title
- sortdir:asc
- categoryId:undefined
- userId:undefined
+ * sortby:title
+ * sortdir:asc
+ * categoryId:undefined
+ * userId:undefined
  */
 router.get('/admin/article', requireLogin, function(req, res, next){
     //sort
@@ -535,11 +556,7 @@ router.get('/admin/article', requireLogin, function(req, res, next){
 });
 
 /**
- * share find article middleware
- * @param req
- * @param res
- * @param next
- * @returns {*}
+ * Middleware 通过ID查找文章
  */
 function  getAritcleById(req,res,next) {
     let id=req.params.id;
@@ -564,11 +581,7 @@ function  getAritcleById(req,res,next) {
 
 
 /**
- * share find category middleware
- * @param req
- * @param res
- * @param next
- * @returns {*}
+ * Middleware 通过ID查找分类
  */
 function  getCategoryById(req,res,next) {
     let id=req.params.id;
@@ -591,6 +604,7 @@ function  getCategoryById(req,res,next) {
 
 /**
  * 登录
+ * 使用passport模块
  */
 router.post('/login', passport.authenticate('local', {
         failureRedirect: '/login',
@@ -598,9 +612,6 @@ router.post('/login', passport.authenticate('local', {
     }), function(req, res, next){
     res.status(200).send(JSON.stringify(req.body));
     console.log('user login success: '+JSON.stringify(req.body));
-
-    //res.jsonp(req.body);
-
 });
 
 /**
@@ -658,8 +669,6 @@ router.post('/password', function(req, res, next){
     if(errors) return res.status(301).send(errors).end();
     
     db.User.findOne({_id: getUser._id}).exec(function (err,user) {
-        //user.name= getUser.name;
-        //user.email= getUser.email;
         user.password=md5(password);
 
         user.save(function(err, result){
@@ -675,32 +684,32 @@ router.post('/password', function(req, res, next){
 });
 
 
-//后台获取登录信息 展示出来
+/**
+ * 获取登录信息session
+ */
 router.get('/mysession', requireLogin, function(req, res, next){
     console.log('call mysession: '+ n++);
     let user=req.user;
-    // console.log('mysession: '+user);
-    //
-    // if(!user){
-    //     return res.status(301).end();
-    // }
     res.status(200).send(user).end();
 });
 
-//注销
+/**
+ * 注销
+ */
 router.get('/logout', function(req, res, next){
     req.logout();
     res.status(200).send(user).end();
 });
 
-//用户权限校验
-// module.exports.requireLogin= function (req, res, next) {
+/**
+ * Middleware 用户权限校验
+ */
 function requireLogin(req, res, next) {
     if(req.user){
         next();
     }else{
         next(new Error('登录用户才能访问'));
     }
-};
+}
 
 module.exports = router;

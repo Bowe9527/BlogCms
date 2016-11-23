@@ -7,9 +7,9 @@
           <router-link class="blog-nav-item" to="/userAbout">关于</router-link>
           <router-link class="blog-nav-item" to="/userContact">联系</router-link>
 
-          <form class="navbar-form navbar-right">
-            <input type="text" class="form-control" id="keyword" v-model="keyword" placeholder="Search...">
-          </form>
+          <!--<form class="navbar-form navbar-right">-->
+            <!--<input type="text" class="form-control" id="keyword" v-model="keyword" placeholder="Search...">-->
+          <!--</form>-->
         </nav>
       </div>
     </div>

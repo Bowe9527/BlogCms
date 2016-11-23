@@ -24,7 +24,7 @@
         </form>
     </div>
 </template>
-<style>
+<style scoped src="../css/dashboard.css">
 
 </style>
 <script>

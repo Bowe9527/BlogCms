@@ -77,7 +77,7 @@ export default{
             this.$http.get('/favorite/'+ id).then(function(res){
                 console.log(res.status);
                 if(res.status==200){
-                    this.article.meta.favorites+1;
+                    this.article.meta.favorites=this.article.meta.favorites+1;
                 }
             },function(res){
                 alert('点赞失败： '+ res.status);
@@ -111,5 +111,5 @@ export default{
 }
 </script>
 <style scoped src="../css/blog.css">
-    @import "../../node_modules/font-awesome/css/font-awesome.css"
+
 </style>

@@ -45,9 +45,7 @@ export default{
         //获取所有文章
         getArticleList(id){
             this.$http.get('/category/'+ id).then(function(res){
-                //console.log('result:'+JSON.stringify(res.body));
-
-
+                console.log('result:'+JSON.stringify(res.body));
                 //this.pages=[];
 
                 this.articles = res.body;
@@ -56,8 +54,12 @@ export default{
 
                 //the time&conent has formated
                 for(let i=0; i<this.articles.length; i++){
-                    this.articles[i].created=moment(this.articles[i].created).format('YYYY-MM-DD');
-                    this.articles[i].content=truncate(this.articles[i].content, 140);
+                    if(this.articles[i].created) {
+                        this.articles[i].created=moment(this.articles[i].created).format('YYYY-MM-DD');
+                    }
+                    if(this.articles[i].content) {
+                        this.articles[i].content=truncate(this.articles[i].content, 140);
+                    }
                 }
 
 

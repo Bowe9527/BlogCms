@@ -62,5 +62,4 @@ db.once('open', function () {
     console.log('The Database has connected.')
 });
 
-
 module.exports = Models;
