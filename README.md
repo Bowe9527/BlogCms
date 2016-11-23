@@ -6,7 +6,7 @@
 
 ## Feauter
 
-* 资源的CURD
+* 资源的CURD，筛选，排序
 * 密码使用MD5加密
 * 登录使用passport验证登录
 * 用户会话记录
